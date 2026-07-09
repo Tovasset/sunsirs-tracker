@@ -1,0 +1,6 @@
+# 화이트리스트 방식: 전부 무시하고 공개할 파일만 허용
+/*
+!/.gitignore
+!/README.md
+!/index.html
+!/data.js

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SunSirs 원자재 트래커</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#15202B;--ink2:#22303F;--paper:#F6F8FA;--panel:#FFFFFF;--line:#E5E9EF;--line2:#EEF1F5;--muted:#64707E;--blue:#2D5B8A;--amber:#C0851A;--green:#117A52;--red:#C13D29;--violet:#6B4E9E;--teal:#1F7F7F;
+--sans:'IBM Plex Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;--mono:'IBM Plex Mono','SFMono-Regular',Menlo,Consolas,monospace;}
+*{box-sizing:border-box} html,body{margin:0}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.top{background:var(--ink);color:#E8EDF2;padding:14px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;border-bottom:3px solid var(--blue)}
+.brand{display:flex;flex-direction:column;gap:2px;min-width:220px}
+.brand h1{font-size:16px;font-weight:700;margin:0;letter-spacing:-.2px}
+.brand .sub{font-size:11px;color:#90A0B0;font-family:var(--mono)}
+.spacer{flex:1}
+.fxwrap{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fx{font-family:var(--mono);font-size:11.5px;background:var(--ink2);border:1px solid #33424F;padding:5px 9px;border-radius:6px;color:#C7D2DC}
+.fx b{color:#fff;font-weight:600}
+.lampwrap{display:flex;gap:7px;align-items:center;font-family:var(--mono);font-size:11px;color:#90A0B0}
+.lamp{width:9px;height:9px;border-radius:50%;background:#28C76F;animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(40,199,111,.5)}70%{box-shadow:0 0 0 7px rgba(40,199,111,0)}100%{box-shadow:0 0 0 0 rgba(40,199,111,0)}}
+@media(prefers-reduced-motion){.lamp{animation:none}}
+.wrap{max-width:1320px;margin:0 auto;padding:20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px 14px}
+.kpi .k{font-size:10.5px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.kpi .v{font-size:22px;font-weight:700;margin-top:4px;font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.kpi .s{font-size:11px;color:var(--muted);margin-top:2px}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+#search{font-family:var(--sans);font-size:14px;font-weight:600;padding:9px 12px;border:1px solid var(--line);border-radius:8px;width:300px}
+#search:focus{outline:2px solid var(--blue);border-color:var(--blue)}
+.metricsel{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:2px}
+.msbtn{font-family:var(--sans);font-size:12px;font-weight:600;padding:6px 14px;border:none;background:none;color:var(--muted);border-radius:6px;cursor:pointer}
+.msbtn.active{background:var(--ink);color:#fff} .msbtn:not(.active):hover{color:var(--ink)}
+.section-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin:26px 0 12px;display:flex;align-items:center;gap:10px}
+.section-label b{color:var(--ink2);font-weight:600;letter-spacing:.02em}
+.section-label::after{content:"";flex:1;height:1px;background:var(--line)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer;transition:box-shadow .12s,border-color .12s}
+.card:hover{border-color:var(--blue);box-shadow:0 3px 14px rgba(20,40,70,.08)}
+.card .nm{font-size:15px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.card .en{font-size:11px;color:var(--muted);font-family:var(--mono);font-weight:500}
+.card .sec{font-size:10.5px;color:var(--muted);font-family:var(--mono);margin-top:1px}
+.card .row{display:flex;align-items:flex-end;justify-content:space-between;margin-top:10px;gap:8px}
+.card .price{font-size:21px;font-weight:700;font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1}
+.card .cny{font-size:10px;color:var(--muted);font-family:var(--mono);margin-left:3px;font-weight:500}
+.chgbig{font-size:15px;font-weight:700;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.spark{margin-top:10px;height:44px}
+.note{font-size:11px;color:var(--muted);margin-top:9px;line-height:1.5;border-top:1px dashed var(--line);padding-top:8px}
+.pos{color:var(--green)} .neg{color:var(--red)} .flat{color:var(--muted)}
+.chgtags{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:10.5px;padding:3px 7px;border-radius:6px;background:var(--paper);border:1px solid var(--line2);color:var(--muted);font-variant-numeric:tabular-nums}
+.tag b{font-weight:600}
+.tablecard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
+.tscroll{overflow-x:auto;border:1px solid var(--line2);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:760px}
+thead th{position:sticky;top:0;background:var(--ink);color:#D8E0E8;font-weight:600;font-size:11px;padding:9px 10px;text-align:right;cursor:pointer;white-space:nowrap;user-select:none}
+thead th:first-child,thead th:nth-child(2),thead th:nth-child(3){text-align:left}
+thead th .ar{opacity:.5;font-size:9px;margin-left:3px}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--line2);text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody td.l{text-align:left;font-family:var(--sans)}
+tbody td .en2{color:var(--muted);font-size:11px;font-family:var(--mono)}
+tbody tr{cursor:pointer} tbody tr:hover{background:#F2F6FB}
+.catpill{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:999px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.mvcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.mvcard h3{font-size:12.5px;margin:0 0 10px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:7px}
+.mvrow{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--line2);font-size:12.5px}
+.mvrow:last-child{border-bottom:none}
+.mvrow .mn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mvrow .ms{font-size:10px;color:var(--muted);font-family:var(--mono);margin-left:6px}
+.mvrow .mc{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.foot{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:24px;line-height:1.8;border-top:1px solid var(--line);padding-top:14px}
+.foot a{color:var(--blue)}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(15,25,40,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.ov.on{display:flex}
+.modal{background:var(--panel);border-radius:14px;max-width:640px;width:100%;max-height:88vh;overflow:auto;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal .mh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.modal .mtitle{font-size:20px;font-weight:700;letter-spacing:-.3px}
+.modal .msub{font-size:12px;color:var(--muted);font-family:var(--mono);margin-top:3px}
+.xbtn{background:var(--paper);border:1px solid var(--line);border-radius:8px;width:32px;height:32px;font-size:18px;cursor:pointer;color:var(--muted);flex:none}
+.bigchart{margin:18px 0 6px}
+.mstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:6px}
+.mstat{background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:8px 10px}
+.mstat .k{font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase}
+.mstat .v{font-size:15px;font-weight:600;font-family:var(--mono);margin-top:2px;font-variant-numeric:tabular-nums}
+.mlink{display:inline-block;margin-top:14px;font-size:12px;color:var(--blue);text-decoration:none;font-family:var(--mono)}
+.mlink:hover{text-decoration:underline}
+.hidden{display:none!important}
+@media(max-width:760px){.wrap{padding:14px}.grid2{grid-template-columns:1fr}#search{width:100%}.cards{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.cards{grid-template-columns:1fr}}
+</style></head>
+<body>
+<div class="top">
+  <div class="brand"><h1>SunSirs 원자재 트래커</h1><div class="sub" id="sub">생이사(生意社) 중국 대종상품 현물가</div></div>
+  <div class="spacer"></div>
+  <div class="fxwrap" id="fx"></div>
+  <div class="lampwrap"><span class="lamp"></span><span id="gen"></span></div>
+</div>
+<div class="wrap">
+  <div class="kpis" id="kpis"></div>
+  <div class="controls">
+    <input id="search" placeholder="품목 검색 (한글/영문)…" autocomplete="off">
+    <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">변동 기준</span>
+    <div class="metricsel" id="metricsel">
+      <button class="msbtn active" data-m="chg_1d">1일</button>
+      <button class="msbtn" data-m="chg_1w">1주</button>
+      <button class="msbtn" data-m="chg_1m">1개월</button>
+    </div>
+  </div>
+  <div id="sections"></div>
+
+  <div class="section-label"><b>워치리스트 전체</b> · 표</div>
+  <div class="tablecard">
+    <div class="tscroll">
+      <table id="tbl"><thead><tr>
+        <th data-k="name_ko">품목<span class="ar"></span></th>
+        <th data-k="sector">업종<span class="ar"></span></th>
+        <th data-k="category">카테고리<span class="ar"></span></th>
+        <th data-k="last">최신가(CNY)<span class="ar"></span></th>
+        <th data-k="chg_1d">1일 %<span class="ar"></span></th>
+        <th data-k="chg_1w">1주 %<span class="ar"></span></th>
+        <th data-k="chg_1m">1개월 %<span class="ar"></span></th>
+      </tr></thead><tbody id="tbody"></tbody></table>
+    </div>
+  </div>
+
+  <div class="section-label"><b>전체 유니버스 급등락</b> · 참고 (<span id="nuniv"></span>개 품목 중)</div>
+  <div class="grid2">
+    <div class="mvcard"><h3>📈 오늘의 급등 Top</h3><div id="gainers"></div></div>
+    <div class="mvcard"><h3>📉 오늘의 급락 Top</h3><div id="losers"></div></div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+
+<script src="data.js"></script>
+<script>
+const D = window.DASHBOARD_DATA || {};
+let METRIC = "chg_1d";
+const CATCOLOR = {"화장품·퍼스널케어":"#6B4E9E","상류 석유화학·원가":"#2D5B8A","기초 무기·범용":"#1F7F7F","에폭시·안정제(국도·송원)":"#C0851A"};
+const $ = s => document.querySelector(s);
+
+function fmtP(v){ if(v===null||v===undefined) return "—";
+  return Number(v).toLocaleString("en-US",{maximumFractionDigits:2}); }
+function fmtC(v){ if(v===null||v===undefined) return {t:"—",c:"flat"};
+  const c = v>0.001?"pos":(v<-0.001?"neg":"flat"); const s=v>0?"+":"";
+  return {t:s+v.toFixed(2)+"%",c}; }
+
+// ── 인라인 SVG 스파크라인 ──
+function spark(series,w,h){
+  const pts = series.map((v,i)=>[i,v]).filter(p=>p[1]!==null&&p[1]!==undefined);
+  if(pts.length===0) return `<svg width="100%" height="${h}"></svg>`;
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  const n=series.length-1||1, mn=Math.min(...ys), mx=Math.max(...ys), rng=(mx-mn)||1;
+  const X=i=>4+(w-8)*(i/n), Y=v=>h-4-(h-8)*((v-mn)/rng);
+  const up = pts[pts.length-1][1]>=pts[0][1];
+  const col = up?"var(--green)":"var(--red)";
+  if(pts.length===1){ const cx=X(pts[0][0]),cy=Y(pts[0][1]);
+    return `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><circle cx="${cx}" cy="${cy}" r="3" fill="${col}"/></svg>`; }
+  const line=pts.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join(" ");
+  const area=`M${X(pts[0][0]).toFixed(1)} ${h} `+pts.map(p=>"L"+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join(" ")+` L${X(pts[pts.length-1][0]).toFixed(1)} ${h} Z`;
+  const last=pts[pts.length-1];
+  return `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <path d="${area}" fill="${up?'rgba(17,122,82,.10)':'rgba(193,61,41,.10)'}"/>
+    <path d="${line}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+    <circle cx="${X(last[0]).toFixed(1)}" cy="${Y(last[1]).toFixed(1)}" r="2.6" fill="${col}"/></svg>`;
+}
+
+// ── 큰 SVG 라인차트 (모달) ──
+function bigChart(dates,series){
+  const W=580,H=230,PL=52,PR=14,PT=16,PB=34;
+  const pts=series.map((v,i)=>[i,v]).filter(p=>p[1]!==null);
+  if(pts.length===0) return `<div class="note">아직 데이터가 없습니다.</div>`;
+  const ys=pts.map(p=>p[1]); let mn=Math.min(...ys),mx=Math.max(...ys);
+  if(mn===mx){mn=mn*0.98;mx=mx*1.02;} const rng=mx-mn;
+  const n=series.length-1||1;
+  const X=i=>PL+(W-PL-PR)*(i/n), Y=v=>H-PB-(H-PT-PB)*((v-mn)/rng);
+  const up=pts[pts.length-1][1]>=pts[0][1], col=up?"var(--green)":"var(--red)";
+  const dec = rng<5?2:(rng<50?1:0);   // 값 범위가 작으면 소수점 늘려 라벨 중복 방지
+  let grid="",lbl="";
+  for(let g=0;g<=4;g++){ const val=mn+rng*g/4, y=Y(val);
+    grid+=`<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="var(--line2)" stroke-width="1"/>`;
+    lbl+=`<text x="${PL-6}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="9.5" fill="var(--muted)" font-family="var(--mono)">${val.toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec})}</text>`; }
+  const line=pts.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join(" ");
+  const dots=pts.map(p=>`<circle cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="2.4" fill="${col}"/>`).join("");
+  // x축 라벨: 처음/중간/끝
+  const idxs=[...new Set([0,Math.floor(n/2),n])];
+  const xlbl=idxs.map(i=>`<text x="${X(i).toFixed(1)}" y="${H-12}" text-anchor="middle" font-size="9.5" fill="var(--muted)" font-family="var(--mono)">${(dates[i]||"").slice(5)}</text>`).join("");
+  return `<svg width="100%" viewBox="0 0 ${W} ${H}">${grid}${lbl}
+    <path d="${line}" fill="none" stroke="${col}" stroke-width="2"/>${dots}${xlbl}</svg>`;
+}
+
+function cardHtml(it){
+  const c=fmtC(it[METRIC]);
+  return `<div class="card" data-id="${it.id}">
+    <div class="nm">${it.name_ko}<span class="en">${it.name_en||""}</span></div>
+    <div class="sec">${it.sector||""}</div>
+    <div class="row">
+      <div class="price">${fmtP(it.last)}<span class="cny">CNY</span></div>
+      <div class="chgbig ${c.c}">${c.t}</div>
+    </div>
+    <div class="spark">${spark(it.series,240,44)}</div>
+    <div class="chgtags">
+      <span class="tag">1일 <b class="${fmtC(it.chg_1d).c}">${fmtC(it.chg_1d).t}</b></span>
+      <span class="tag">1주 <b class="${fmtC(it.chg_1w).c}">${fmtC(it.chg_1w).t}</b></span>
+      <span class="tag">1개월 <b class="${fmtC(it.chg_1m).c}">${fmtC(it.chg_1m).t}</b></span>
+    </div>
+    ${it.note?`<div class="note">${it.note}</div>`:""}
+  </div>`;
+}
+
+function renderSections(q){
+  const host=$("#sections"); host.innerHTML="";
+  D.categories.forEach(cat=>{
+    let items=D.items.filter(it=>it.category===cat);
+    if(q) items=items.filter(it=>(it.name_ko+it.name_en+(it.name_official||"")).toLowerCase().includes(q));
+    if(!items.length) return;
+    const sec=document.createElement("div");
+    sec.innerHTML=`<div class="section-label"><b>${cat}</b> · ${items.length}종</div>
+      <div class="cards">${items.map(cardHtml).join("")}</div>`;
+    host.appendChild(sec);
+  });
+  host.querySelectorAll(".card").forEach(el=>el.onclick=()=>openModal(el.dataset.id));
+}
+
+// ── 표 ──
+let sortK="category",sortDir=1;
+function renderTable(q){
+  let rows=D.items.slice();
+  if(q) rows=rows.filter(it=>(it.name_ko+it.name_en+(it.name_official||"")).toLowerCase().includes(q));
+  rows.sort((a,b)=>{
+    let x=a[sortK],y=b[sortK];
+    if(typeof x==="string"||typeof y==="string"){x=(x||"").toString();y=(y||"").toString();return x.localeCompare(y,"ko")*sortDir;}
+    x=(x===null||x===undefined)?-1e15:x; y=(y===null||y===undefined)?-1e15:y;
+    return (x-y)*sortDir;
+  });
+  $("#tbody").innerHTML=rows.map(it=>{
+    const cc=CATCOLOR[it.category]||"#888";
+    return `<tr data-id="${it.id}">
+      <td class="l"><b>${it.name_ko}</b> <span class="en2">${it.name_en||""}</span></td>
+      <td class="l">${it.sector||""}</td>
+      <td class="l"><span class="catpill" style="background:${cc}1a;color:${cc}">${it.category}</span></td>
+      <td>${fmtP(it.last)}</td>
+      <td class="${fmtC(it.chg_1d).c}">${fmtC(it.chg_1d).t}</td>
+      <td class="${fmtC(it.chg_1w).c}">${fmtC(it.chg_1w).t}</td>
+      <td class="${fmtC(it.chg_1m).c}">${fmtC(it.chg_1m).t}</td>
+    </tr>`;
+  }).join("");
+  $("#tbody").querySelectorAll("tr").forEach(el=>el.onclick=()=>openModal(el.dataset.id));
+  document.querySelectorAll("#tbl thead th").forEach(th=>{
+    const a=th.querySelector(".ar"); a.textContent=(th.dataset.k===sortK)?(sortDir>0?"▲":"▼"):"";
+  });
+}
+
+// ── 모달 ──
+function openModal(id){
+  const it=D.items.find(x=>x.id===id); if(!it) return;
+  const c1=fmtC(it.chg_1d),cw=fmtC(it.chg_1w),cm=fmtC(it.chg_1m);
+  $("#modal").innerHTML=`
+    <div class="mh"><div>
+      <div class="mtitle">${it.name_ko}</div>
+      <div class="msub">${it.name_en||""} · ${it.sector||""} · ${it.category}${it.name_official&&it.name_official!==it.name_ko?" · 정식명: "+it.name_official:""}</div>
+    </div><button class="xbtn" onclick="closeModal()">×</button></div>
+    <div class="bigchart">${bigChart(D.dates,it.series)}</div>
+    <div class="mstats">
+      <div class="mstat"><div class="k">최신가</div><div class="v">${fmtP(it.last)}<span style="font-size:10px;color:var(--muted)"> CNY</span></div></div>
+      <div class="mstat"><div class="k">1일</div><div class="v ${c1.c}">${c1.t}</div></div>
+      <div class="mstat"><div class="k">1주</div><div class="v ${cw.c}">${cw.t}</div></div>
+      <div class="mstat"><div class="k">1개월</div><div class="v ${cm.c}">${cm.t}</div></div>
+      <div class="mstat"><div class="k">데이터일</div><div class="v" style="font-size:12px">${it.last_date||"—"}</div></div>
+      <div class="mstat"><div class="k">축적포인트</div><div class="v">${it.npts}</div></div>
+    </div>
+    ${it.note?`<div class="note" style="border:none;padding-top:12px">${it.note}</div>`:""}
+    <a class="mlink" href="${it.url}" target="_blank" rel="noopener">↗ SunSirs 상세페이지 (과거 그래프·상세)</a>`;
+  $("#ov").classList.add("on");
+}
+function closeModal(){$("#ov").classList.remove("on");}
+$("#ov").onclick=e=>{if(e.target.id==="ov")closeModal();};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+
+// ── 급등락 (전체 유니버스) ──
+function renderMovers(){
+  const gain=((D.movers&&D.movers.gainers)||[]).filter(m=>m.chg>0);
+  const loss=((D.movers&&D.movers.losers)||[]).filter(m=>m.chg<0);
+  const row=m=>{const c=fmtC(m.chg);return `<div class="mvrow"><div class="mn">${m.name}<span class="ms">${m.sector}</span></div><div class="mc ${c.c}">${c.t}</div></div>`;};
+  $("#gainers").innerHTML=gain.length?gain.map(row).join(""):`<div class="note">변동 없음</div>`;
+  $("#losers").innerHTML=loss.length?loss.map(row).join(""):`<div class="note">변동 없음</div>`;
+}
+
+// ── KPI ──
+function renderKpis(){
+  const its=D.items;
+  const withChg=its.filter(i=>i.chg_1d!==null);
+  const up=withChg.filter(i=>i.chg_1d>0.001).length;
+  const dn=withChg.filter(i=>i.chg_1d<-0.001).length;
+  const top=withChg.slice().sort((a,b)=>b.chg_1d-a.chg_1d)[0];
+  const bot=withChg.slice().sort((a,b)=>a.chg_1d-b.chg_1d)[0];
+  const tc=top?fmtC(top.chg_1d):{t:"—",c:"flat"}, bc=bot?fmtC(bot.chg_1d):{t:"—",c:"flat"};
+  $("#kpis").innerHTML=`
+    <div class="kpi"><div class="k">워치 품목</div><div class="v">${its.length}</div><div class="s">3개 카테고리</div></div>
+    <div class="kpi"><div class="k">오늘 상승 / 하락</div><div class="v"><span class="pos">${up}</span> <span style="color:var(--line)">/</span> <span class="neg">${dn}</span></div><div class="s">1일 기준 · ${withChg.length}종 집계</div></div>
+    <div class="kpi"><div class="k">최대 상승</div><div class="v ${tc.c}" style="font-size:17px">${tc.t}</div><div class="s">${top?top.name_ko:"—"}</div></div>
+    <div class="kpi"><div class="k">최대 하락</div><div class="v ${bc.c}" style="font-size:17px">${bc.t}</div><div class="s">${bot?bot.name_ko:"—"}</div></div>`;
+}
+
+function renderTop(){
+  $("#gen").textContent="갱신 "+(D.generated||"");
+  $("#sub").textContent="생이사(生意社) 중국 대종상품 현물가 · 기준일 "+(D.as_of||"—");
+  $("#fx").innerHTML=(D.fx||[]).slice(0,3).map(f=>`<span class="fx">${f.cur.replace("100 ","")} <b>${(f.rate||"").replace(" CNY","")}</b></span>`).join("");
+  $("#nuniv").textContent=D.n_universe||"—";
+  $("#foot").innerHTML=`출처: <a href="https://www.sunsirs.com/kr/" target="_blank" rel="noopener">SunSirs 생이사</a> · 가격 단위 CNY(위안) · 기준일 ${D.as_of||"—"}<br>
+    시계열은 <b>매일 자동 수집으로 축적</b>됩니다 — 오늘 시점 ${D.dates?D.dates.length:0}일치. 며칠 쌓이면 1주·1개월 변동과 추세선이 채워집니다.<br>
+    개별 품목의 장기 과거 그래프는 카드/행 클릭 → 상세페이지 링크에서 확인.`;
+}
+
+// ── init ──
+function renderAll(){const q=$("#search").value.trim().toLowerCase();renderSections(q);renderTable(q);}
+renderTop();renderKpis();renderMovers();renderAll();
+$("#search").oninput=renderAll;
+$("#metricsel").onclick=e=>{const b=e.target.closest(".msbtn");if(!b)return;
+  document.querySelectorAll(".msbtn").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+  METRIC=b.dataset.m; renderSections($("#search").value.trim().toLowerCase());};
+document.querySelectorAll("#tbl thead th").forEach(th=>th.onclick=()=>{
+  const k=th.dataset.k; if(k===sortK)sortDir*=-1;else{sortK=k;sortDir=(k==="name_ko"||k==="sector"||k==="category")?1:-1;}
+  renderTable($("#search").value.trim().toLowerCase());});
+</script>
+</body></html>
